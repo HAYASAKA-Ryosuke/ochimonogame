@@ -2,14 +2,14 @@ import sys
 import random
 import pygame
 from pygame.locals import MOUSEMOTION, MOUSEBUTTONDOWN, QUIT
-import copy
+from engine import Ball, collision, wall_collision
 
 pygame.init()
 
 clock = pygame.time.Clock()
 
-CLOCK = 300
-SCREEN_SIZE_WIDTH = 500
+CLOCK = 200
+SCREEN_SIZE_WIDTH = 300
 SCREEN_SIZE_HEIGHT = 800
 GAME_AREA_START_Y = 200
 GAME_AREA_END_Y = SCREEN_SIZE_HEIGHT
@@ -17,62 +17,91 @@ screen = pygame.display.set_mode((SCREEN_SIZE_WIDTH, SCREEN_SIZE_HEIGHT))
 pygame.display.set_caption('Falling Balls')
 background = (255, 255, 255)
 colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (255, 0, 255), (0, 255, 255)]
-sizes = [40, 50, 60, 70, 80, 90, 100, 110]
+radiuses = [i for i in range(20, 100 + 10, 10)]
 
 objects = {}
 object_count = 0
 
 
-def generate_object(position: tuple, color=None, size=None) -> dict:
+def generate_object(position: tuple, color=None, radius=None) -> dict:
     index = random.randint(0, 3)
     if color is None:
         color = colors[index]
-    if size is None:
-        size = sizes[index]
-    return dict(color=color, position=(position[0], position[1] + size), size=size)
+    if radius is None:
+        radius = radiuses[index]
+    return Ball(GAME_AREA_END_Y, position[0], position[1] + radius, radius, color, 0, 0)
+    # return dict(color=color, position=(position[0], position[1] + size), size=size)
 
 
-def draw_object(color: tuple, position: tuple, size: int):
-    pygame.draw.circle(screen, color, position, size)
-
-
-selected_object = generate_object((250, 0), colors[0], sizes[0])
+selected_object = generate_object((250, 0), colors[0], radiuses[0])
 
 
 def collision_detection(target_object_id: int):
-    result = {}
+    result = []
     for object_id in objects:
         if object_id == target_object_id:
             continue
-        dx = objects[target_object_id]['position'][0] - objects[object_id]['position'][0]
-        dy = objects[target_object_id]['position'][1] - objects[object_id]['position'][1]
-        size = objects[target_object_id]['size'] + objects[object_id]['size']
-        if dx ** 2 + dy ** 2 <= size ** 2:
-            result[object_id] = copy.deepcopy(objects[object_id]['size'])
+        updated_positions = collision(objects[object_id], objects[target_object_id])
+        if updated_positions['is_updated']:
+            objects[object_id].x = updated_positions['ball1_x']
+            objects[object_id].y = updated_positions['ball1_y']
+            objects[object_id].velocity_x = updated_positions['ball1_velocity_x']
+            objects[object_id].velocity_y = updated_positions['ball1_velocity_y']
+            objects[target_object_id].x = updated_positions['ball2_x']
+            objects[target_object_id].y = updated_positions['ball2_y']
+            objects[target_object_id].velocity_x = updated_positions['ball2_velocity_x']
+            objects[target_object_id].velocity_y = updated_positions['ball2_velocity_y']
+
+        wall_collision_detection = wall_collision(objects[object_id], SCREEN_SIZE_WIDTH)
+        if wall_collision_detection['is_updated']:
+            if wall_collision_detection['left']:
+                objects[object_id].velocity_x = abs(objects[object_id].velocity_x)
+                objects[object_id].x = 0.2 + objects[object_id].radius
+            if wall_collision_detection['right']:
+                objects[object_id].velocity_x = -abs(objects[object_id].velocity_x)
+                objects[object_id].x = SCREEN_SIZE_WIDTH - 0.2 - objects[object_id].radius
+
+        wall_collision_detection = wall_collision(objects[target_object_id], SCREEN_SIZE_WIDTH)
+        if wall_collision_detection['is_updated']:
+            if wall_collision_detection['left']:
+                objects[target_object_id].velocity_x = abs(objects[target_object_id].velocity_x)
+                objects[target_object_id].x = 0.2 + objects[target_object_id].radius
+            if wall_collision_detection['right']:
+                objects[target_object_id].velocity_x = -abs(objects[target_object_id].velocity_x)
+                objects[target_object_id].x = SCREEN_SIZE_WIDTH - 0.2 - objects[target_object_id].radius
+
+        if updated_positions['is_updated']:
+            result.append(object_id)
     return result
+    # result = {}
+    # for object_id in objects:
+    #     if object_id == target_object_id:
+    #         continue
+    #     dx = objects[target_object_id]['position'][0] - objects[object_id]['position'][0]
+    #     dy = objects[target_object_id]['position'][1] - objects[object_id]['position'][1]
+    #     size = objects[target_object_id]['size'] + objects[object_id]['size']
+    #     if dx ** 2 + dy ** 2 <= size ** 2:
+    #         result[object_id] = copy.deepcopy(objects[object_id]['size'])
+    # return result
 
 
 while True:
     screen.fill(background)
     pygame.draw.line(screen, (0, 0, 0), (0, GAME_AREA_START_Y), (SCREEN_SIZE_WIDTH, GAME_AREA_START_Y), 5)
-    draw_object(selected_object['color'], selected_object['position'], selected_object['size'])
+    selected_object.draw(screen)
     remove_object_keys = []
-    objects_keys = list(objects.keys())
-    for object_id in objects_keys:
-        color = objects[object_id]['color']
-        position = objects[object_id]['position']
-        size = objects[object_id]['size']
-        draw_object(color, position, size)
+    for object_id in objects:
+        color = objects[object_id].color
+        position = (objects[object_id].x, objects[object_id].y)
+        radius = objects[object_id].radius
         collision_objects = collision_detection(object_id)
-        is_collision = False
         for collision_object_id in collision_objects:
-            if collision_objects[collision_object_id] == size:
+            if objects[collision_object_id].radius == radius:
                 remove_object_keys.append((object_id, collision_object_id))
                 continue
-            is_collision = True
-        if position[1] <= GAME_AREA_END_Y - size:
-            if not is_collision:
-                objects[object_id] = dict(color=color, position=(position[0], position[1] + 1), size=size)
+        # if objects[object_id].y <= GAME_AREA_END_Y - radius:
+        objects[object_id].move()
+        objects[object_id].draw(screen)
 
     for remove_object_key in remove_object_keys:
         if objects.get(remove_object_key[0]) is None or objects.get(remove_object_key[1]) is None:
@@ -80,25 +109,27 @@ while True:
         is_delete_object = False
 
         obj = objects[remove_object_key[1] if remove_object_key[0] < remove_object_key[1] else remove_object_key[0]]
-        index = sizes.index(obj['size'])
-        if index == len(sizes) - 1:
+        index = radiuses.index(obj.radius)
+        if index == len(radiuses) - 1:
             is_delete_object = True
         else:
-            next_object_size = sizes[index + 1]
+            next_object_radius = radiuses[index + 1]
             next_object_color = colors[index + 1]
-        next_object_position = obj['position']
+        next_object_position = (obj.x, obj.y)
         del objects[remove_object_key[0]]
         del objects[remove_object_key[1]]
         if is_delete_object:
             continue
-        objects[object_count] = generate_object(next_object_position, next_object_color, next_object_size)
+        # ボールを成長させる
+        objects[object_count] = generate_object((obj.x, obj.y - next_object_radius), next_object_color, next_object_radius)
         object_count += 1
 
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == MOUSEMOTION:
             x, y = event.pos
-            selected_object['position'] = (x, selected_object['size'])
+            selected_object.x = x
+            selected_object.y = selected_object.radius
         if event.type == MOUSEBUTTONDOWN:
             objects[object_count] = selected_object
             object_count += 1
