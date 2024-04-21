@@ -98,7 +98,7 @@ while True:
     for event in pygame.event.get():
         if event.type == MOUSEMOTION:
             x, y = event.pos
-            selected_object['position'] = (x, 0 + selected_object['size'])
+            selected_object['position'] = (x, selected_object['size'])
         if event.type == MOUSEBUTTONDOWN:
             objects[object_count] = selected_object
             object_count += 1
