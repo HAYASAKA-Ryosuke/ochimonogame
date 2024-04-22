@@ -2,12 +2,12 @@ import pygame
 import math
 
 
-def wall_collision(ball, width):
+def wall_collision(ball, start_width, end_width):
     # 左端か右端に衝突した場合
     return {
-        'is_updated': ball.x - ball.radius <= 0 or ball.x + ball.radius >= width,
-        'left': ball.x - ball.radius <= 0,
-        'right': ball.x + ball.radius >= width,
+        'is_updated': ball.x - ball.radius <= start_width or ball.x + ball.radius >= end_width,
+        'left': ball.x - ball.radius <= start_width,
+        'right': ball.x + ball.radius >= end_width,
     }
 
 
