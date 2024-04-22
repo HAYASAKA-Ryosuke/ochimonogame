@@ -18,7 +18,17 @@ GAME_AREA_END_Y = SCREEN_SIZE_HEIGHT
 screen = pygame.display.set_mode((SCREEN_SIZE_WIDTH, SCREEN_SIZE_HEIGHT))
 pygame.display.set_caption('Falling Balls')
 background = (0, 0, 0)
-colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 128, 0), (0, 0, 128), (128, 0, 0), (128, 128, 128)]
+BLUE = (0, 0, 255)
+CYAN = (0, 255, 255)
+GOLD = (255, 215, 0)
+GRAY = (128, 128, 128)
+GREEN = (0, 128, 0)
+ORANGE = (255, 165, 0)
+PURPLE = (128, 0, 128)
+RED = (255, 0, 0)
+VIOLET = (238, 130, 238)
+YELLOW = (255, 255, 0)
+colors = [RED, ORANGE, YELLOW, GOLD, BLUE, PURPLE, CYAN, VIOLET, GRAY, GREEN]
 radiuses = [i for i in range(20, 100 + 10, 10)]
 
 objects = {}
