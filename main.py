@@ -149,14 +149,18 @@ def show_game_over():
 
 
 running = True
+is_game_over = False
 
 while running:
     draw_ui()
     selected_object.draw(screen)
     remove_object_keys = []
+    if is_game_over:
+        show_game_over()
     for object_id in objects:
         if objects[object_id].y - objects[object_id].radius < GAME_AREA_START_Y and objects[object_id].is_game_area_collision and objects[object_id].velocity_y < 0.2:
             show_game_over()
+            is_game_over = True
         if objects[object_id].y + objects[object_id].radius > GAME_AREA_START_Y:
             objects[object_id].is_game_area_collision = True
         color = objects[object_id].color
@@ -188,10 +192,11 @@ while running:
         if is_delete_object:
             continue
         # ボールを成長させる
-        objects[object_count] = generate_object((obj.x, obj.y - next_object_radius), next_object_color, next_object_radius)
+        objects[object_count] = generate_object((obj.x, obj.y + next_object_radius), next_object_color, next_object_radius)
         objects[object_count].is_game_area_collision = True
         object_count += 1
-        update_score(index)
+        if not is_game_over:
+            update_score(index)
 
     pygame.display.update()
     for event in pygame.event.get():
