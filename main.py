@@ -30,7 +30,6 @@ def generate_object(position: tuple, color=None, radius=None) -> dict:
     if radius is None:
         radius = radiuses[index]
     return Ball(GAME_AREA_END_Y, position[0], position[1] + radius, radius, color, 0, 0)
-    # return dict(color=color, position=(position[0], position[1] + size), size=size)
 
 
 selected_object = generate_object((250, 0), colors[0], radiuses[0])
@@ -73,16 +72,6 @@ def collision_detection(target_object_id: int):
         if updated_positions['is_updated']:
             result.append(object_id)
     return result
-    # result = {}
-    # for object_id in objects:
-    #     if object_id == target_object_id:
-    #         continue
-    #     dx = objects[target_object_id]['position'][0] - objects[object_id]['position'][0]
-    #     dy = objects[target_object_id]['position'][1] - objects[object_id]['position'][1]
-    #     size = objects[target_object_id]['size'] + objects[object_id]['size']
-    #     if dx ** 2 + dy ** 2 <= size ** 2:
-    #         result[object_id] = copy.deepcopy(objects[object_id]['size'])
-    # return result
 
 
 while True:
@@ -99,7 +88,6 @@ while True:
             if objects[collision_object_id].radius == radius:
                 remove_object_keys.append((object_id, collision_object_id))
                 continue
-        # if objects[object_id].y <= GAME_AREA_END_Y - radius:
         objects[object_id].move()
         objects[object_id].draw(screen)
 

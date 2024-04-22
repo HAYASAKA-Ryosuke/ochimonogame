@@ -97,4 +97,3 @@ class Ball:
 
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
-
