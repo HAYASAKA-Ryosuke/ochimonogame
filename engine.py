@@ -77,6 +77,7 @@ class Ball:
         self.velocity_x = velocity_x
         self.velocity_y = velocity_y
         self.friction = 0.2
+        self.is_game_area_collision = False
 
     def move(self):
         # 重力と摩擦による速度の更新
@@ -92,7 +93,7 @@ class Ball:
         # 地面との衝突
         if self.y + self.radius >= self.height:
             self.y = self.height - self.radius
-            self.velocity_y = -self.velocity_y * 0.2  # 反発係数で調整
+            self.velocity_y = -self.velocity_y * 0.01  # 反発係数で調整
             self.angular_velocity = -self.velocity_x / self.radius
 
     def draw(self, screen):

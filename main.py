@@ -18,7 +18,7 @@ GAME_AREA_END_Y = SCREEN_SIZE_HEIGHT
 screen = pygame.display.set_mode((SCREEN_SIZE_WIDTH, SCREEN_SIZE_HEIGHT))
 pygame.display.set_caption('Falling Balls')
 background = (0, 0, 0)
-colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (128, 128, 128), (0, 128, 0)]
+colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 128, 0), (0, 0, 128), (128, 0, 0), (128, 128, 128)]
 radiuses = [i for i in range(20, 100 + 10, 10)]
 
 objects = {}
@@ -142,11 +142,23 @@ def update_score(index):
             score += 55
 
 
-while True:
+def show_game_over():
+    font = pygame.font.Font(None, 72)
+    game_over_text = font.render('Game Over', True, (255, 255, 255))
+    screen.blit(game_over_text, (100, 200))
+
+
+running = True
+
+while running:
     draw_ui()
     selected_object.draw(screen)
     remove_object_keys = []
     for object_id in objects:
+        if objects[object_id].y - objects[object_id].radius < GAME_AREA_START_Y and objects[object_id].is_game_area_collision and objects[object_id].velocity_y < 0.2:
+            show_game_over()
+        if objects[object_id].y + objects[object_id].radius > GAME_AREA_START_Y:
+            objects[object_id].is_game_area_collision = True
         color = objects[object_id].color
         position = (objects[object_id].x, objects[object_id].y)
         radius = objects[object_id].radius
@@ -177,6 +189,7 @@ while True:
             continue
         # ボールを成長させる
         objects[object_count] = generate_object((obj.x, obj.y - next_object_radius), next_object_color, next_object_radius)
+        objects[object_count].is_game_area_collision = True
         object_count += 1
         update_score(index)
 
